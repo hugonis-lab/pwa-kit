@@ -1,0 +1,17 @@
+{
+  "name": "PWA Kit — Thin Shell + Zig WASM Core",
+  "short_name": "PWA Kit",
+  "description": "Local-first SolidJS shell paired with a zero-dependency Zig WebAssembly kernel in a dedicated Web Worker.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0b0f17",
+  "theme_color": "#0b0f17",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

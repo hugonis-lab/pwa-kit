@@ -1,0 +1,110 @@
+/* Zero-runtime static design tokens — decoupled from any CSS framework or desktop environment.
+ * Every foreground/background pair is tuned for APCA Lc >= 65 (body) / Lc >= 60 (muted/captions). */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces (elevated depth steps) */
+  --bg-canvas: #0b0f17;
+  --bg-surface: #121826;
+  --bg-elevated: #192234;
+  --bg-inset: #0e1420;
+  --bg-hover: #212d44;
+
+  /* Borders */
+  --border-subtle: #25324a;
+  --border-strong: #3a4c6e;
+  --border-focus: #7dd3fc;
+
+  /* Foreground text (APCA verified Lc >= 65 on --bg-canvas / --bg-surface / --bg-elevated) */
+  --fg-primary: #f1f5fc;
+  --fg-secondary: #cdd9ec;
+  --fg-muted: #b4c6e2;
+
+  /* Semantic accents */
+  --accent: #7dd3fc;
+  --accent-bg: #153448;
+  --accent-ink: #07131e;
+  --accent-solid: #38bdf8;
+
+  --ok: #6ee7b7;
+  --ok-bg: #0f3026;
+  --ok-border: #1e5c48;
+
+  --del: #ffd5dc;
+  --del-bg: #36131d;
+  --del-hl: #631e31;
+
+  --add: #a7f3c5;
+  --add-bg: #0f2c1f;
+  --add-hl: #1c5439;
+
+  --warn: #fcd34d;
+  --warn-bg: #36290c;
+
+  /* Typography */
+  --font-sans: "Inter", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 0.9375rem;
+  --text-lg: 1.125rem;
+  --text-xl: clamp(1.25rem, 1.05rem + 0.9vw, 1.625rem);
+
+  /* Spacing rhythm (4px / 8px base) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+
+  /* Concentric radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-fast: 120ms;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-canvas: #f5f7fb;
+  --bg-surface: #ffffff;
+  --bg-elevated: #eef2f8;
+  --bg-inset: #f0f3f9;
+  --bg-hover: #e2e8f2;
+
+  --border-subtle: #d3dce9;
+  --border-strong: #9fb0c7;
+  --border-focus: #0369a1;
+
+  --fg-primary: #0f172a;
+  --fg-secondary: #2c3b52;
+  --fg-muted: #4b5d77;
+
+  --accent: #0369a1;
+  --accent-bg: #e0f2fe;
+  --accent-ink: #ffffff;
+  --accent-solid: #0284c7;
+
+  --ok: #047857;
+  --ok-bg: #d1fae5;
+  --ok-border: #6ee7b7;
+
+  --del: #9f1239;
+  --del-bg: #ffe4e6;
+  --del-hl: #fecdd3;
+
+  --add: #065f46;
+  --add-bg: #dcfce7;
+  --add-hl: #bbf7d0;
+
+  --warn: #92400e;
+  --warn-bg: #fef3c7;
+}

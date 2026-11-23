@@ -1,0 +1,8 @@
+node_modules/
+shell/dist/
+shell/public/core.wasm
+wasm/zig-core/core.raw.wasm
+.env
+.env.local
+*.log
+.DS_Store
