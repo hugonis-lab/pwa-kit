@@ -1,42 +1,42 @@
-# PWA Kit — Thin SolidJS Shell + Zig WASM Core
+# PWA Kit
 
-A local-first, composable Progressive Web App starter and WebAssembly kernel toolkit built around a strict separation of concerns:
+Build local-first Progressive Web Apps with a thin SolidJS UI shell and a tiny Zig WebAssembly compute core.
 
-- **Thin Reactive UI Shell (`shell/`)**: Fine-grained **SolidJS** + **Vite** + **Zero-Runtime Static CSS** (`tokens.css` + `app.css`, decoupled from any utility framework or OS theme) with an offline-first Service Worker precache shell and `COOP`/`COEP` headers.
-- **Zero-Dependency Zig WASM Core (`wasm/zig-core/`)**: Compiles to a **`~3.1 KB` raw (`~1.6 KB` gzip)** `wasm32-freestanding` binary running inside a dedicated **Web Worker** (`core.worker.ts`) so heavy compute never blocks the main thread or INP budget.
-- **Composable Kernel Registry (`shell/src/plugins/registry.ts`)**: Register additional WASM/Worker kernels cleanly without modifying the shell architecture.
-- **Local-First Persistence (`shell/src/storage/localStore.ts`)**: Zero-dependency `OPFS → IndexedDB → Memory` workspace snapshot adapter with offline restore/delete.
-- **Automated UI Quality Gate CI (`.forgejo/workflows/ui-gate.yaml`)**: Portable workflow running `ui-gate` on every push and pull request.
+Heavy text processing runs inside a dedicated Web Worker compiled from Zig (~3.1 KB raw, ~1.6 KB gzipped) so the main UI thread stays responsive. Offline persistence falls back cleanly from OPFS to IndexedDB to memory.
 
-## Included Zig WASM Kernels (`core.zig`)
+## Installation
+
+Requires Node.js 20+ and Zig 0.14+ (Binaryen `wasm-opt` is optional for extra size reduction).
+
+```bash
+cd shell && npm install
+```
+
+## Quick Start
+
+Build the Zig WebAssembly core and run unit, property, and JS-vs-WASM benchmark tests:
+
+```bash
+make test
+```
+
+Typecheck, bundle, and preview the PWA locally with `COOP`/`COEP` headers:
+
+```bash
+cd shell && npm run typecheck && npm run build && npm run preview
+```
+
+## Bundled Zig WASM Kernels
+
+All kernels live in `wasm/zig-core/src/core.zig` with zero heap allocations:
 
 | Export | Algorithm | Memory Model |
 | :--- | :--- | :--- |
-| `diff_lines` | FNV-1a hashed Myers $O(ND)$ line diff with prefix/suffix trim, compact triangular trace, RLE `u32` opcodes, and `max_d` guardrail | Deterministic 8 MiB static BSS bump arena (0 bytes on disk) |
-| `strip_ansi` | Single-pass CSI / OSC (BEL & ST) / 2-byte ESC stripper preserving UTF-8 | Zero heap / zero GC |
-| `fuzzy_score` | Case-insensitive word-boundary, camelCase, and consecutive-run subsequence scorer | Zero heap / zero GC |
+| `diff_lines` | FNV-1a hashed Myers line diff with compact trace and RLE opcodes | 8 MiB static BSS arena (0 bytes on disk) |
+| `strip_ansi` | Single-pass CSI, OSC, and 2-byte ESC stripper preserving UTF-8 | Zero heap, zero GC |
+| `fuzzy_score` | Case-insensitive word-boundary and camelCase subsequence scorer | Zero heap, zero GC |
 
-## Quickstart
-
-### Prerequisites
-- **Node.js** `>= 20`
-- **Zig** `>= 0.14` (tested with `0.17.0`)
-- Optional: **Binaryen** (`wasm-opt`) for `-Oz` post-optimization
-
-### Build & Test
-
-```bash
-# 1. Compile the Zig WASM core & run unit + randomized property + benchmark tests
-make test
-
-# 2. Install shell dependencies and build the production PWA bundle
-cd shell && npm install && npm run typecheck && npm run build
-
-# 3. Preview locally with COOP/COEP headers
-cd shell && npm run preview
-```
-
-## Architecture
+## Repository Structure
 
 ```text
 pwa-kit/
@@ -52,13 +52,13 @@ pwa-kit/
 │   │   └── App.tsx        # Thin SolidJS workbench
 │   └── public/            # manifest.webmanifest, icon.svg, sw.js
 └── tests/
-    └── zig-core.test.mjs  # Unit, property-based reconstruction, & JS vs WASM benchmarks
+    └── zig-core.test.mjs  # Unit, property, and JS-vs-WASM benchmark tests
 ```
 
-## Configuration (12-Factor)
+## Configuration
 
-See [`.env.example`](.env.example). All host/port settings are environment-driven with loopback defaults (`127.0.0.1:4173`).
+All host and port settings come from environment variables with loopback defaults (`127.0.0.1:4173`). See [`.env.example`](.env.example).
 
 ## License
 
-MIT
+MIT.
