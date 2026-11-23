@@ -1,5 +1,6 @@
 import { For, Show, createEffect, createSignal, onCleanup, onMount } from "solid-js";
 import { defaultKernelRegistry } from "./plugins/registry";
+import { openLocalStore, type LocalStorageAdapter, type WorkspaceSnapshot } from "./storage/localStore";
 import {
   CoreWorkerClient,
   type BenchmarkCase,
@@ -90,10 +91,24 @@ export function App() {
   const [benchCases, setBenchCases] = createSignal<BenchmarkCase[] | null>(null);
   const [benchRunning, setBenchRunning] = createSignal(false);
 
+  // Local-first persistence state (OPFS -> IndexedDB -> Memory)
+  const [storageBackend, setStorageBackend] = createSignal<string>("…");
+  const [snapshots, setSnapshots] = createSignal<WorkspaceSnapshot[]>([]);
+
   let client: CoreWorkerClient | null = null;
+  let store: LocalStorageAdapter | null = null;
 
   onMount(async () => {
     client = new CoreWorkerClient();
+    openLocalStore()
+      .then(async (adapter) => {
+        store = adapter;
+        setStorageBackend(adapter.backend);
+        setSnapshots(await adapter.list());
+      })
+      .catch(() => {
+        setStorageBackend("Memory");
+      });
     try {
       const { result } = await client.init();
       setWorkerInfo(result);
@@ -167,6 +182,37 @@ export function App() {
     }
   }
 
+  async function saveCurrentSnapshot() {
+    if (!store) return;
+    const now = new Date();
+    const label = `${activeKernel().label} — ${now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`;
+    const snap: WorkspaceSnapshot = {
+      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      label,
+      savedAt: now.toISOString(),
+      tab: activeTab(),
+      oldText: oldText(),
+      newText: newText(),
+      ansiInput: ansiInput(),
+      fuzzyQuery: fuzzyQuery(),
+    };
+    setSnapshots(await store.save(snap));
+  }
+
+  async function restoreSnapshot(snap: WorkspaceSnapshot) {
+    setActiveTab(snap.tab);
+    setOldText(snap.oldText);
+    setNewText(snap.newText);
+    setAnsiInput(snap.ansiInput);
+    setFuzzyQuery(snap.fuzzyQuery);
+    await Promise.all([runDiff(snap.oldText, snap.newText), runAnsi(snap.ansiInput), runFuzzy(snap.fuzzyQuery)]);
+  }
+
+  async function removeSnapshot(id: string) {
+    if (!store) return;
+    setSnapshots(await store.remove(id));
+  }
+
   const activeKernel = () => kernels.find((k) => k.id === activeTab()) ?? kernels[0];
 
   return (
@@ -185,7 +231,7 @@ export function App() {
             {workerInfo() ? "WASM Worker Ready" : "Booting Worker…"}
           </span>
           <span class="status-pill">
-            {swReady() ? "Offline Shell Active" : "Local-First Shell"}
+            {swReady() ? "Offline Shell Active" : "Local-First Shell"} · {storageBackend()}
           </span>
           <button
             type="button"
@@ -434,6 +480,49 @@ export function App() {
               </ul>
             </Show>
           </div>
+        </Show>
+      </section>
+
+      <section class="panel" aria-label="Local-first snapshots">
+        <div class="panel-header">
+          <div>
+            <h2 class="panel-title">Local-First Snapshots ({storageBackend()})</h2>
+            <p class="panel-desc">Persisted on-device via OPFS / IndexedDB with zero cloud round-trips.</p>
+          </div>
+          <button type="button" class="btn" onClick={saveCurrentSnapshot}>
+            Save Snapshot
+          </button>
+        </div>
+        <Show
+          when={snapshots().length > 0}
+          fallback={
+            <div class="empty-state">
+              No local snapshots saved yet. Click “Save Snapshot” to persist the current workspace offline.
+            </div>
+          }
+        >
+          <ul class="snapshot-list">
+            <For each={snapshots()}>
+              {(snap) => (
+                <li class="snapshot-row">
+                  <div class="snapshot-info">
+                    <span class="snapshot-label">{snap.label}</span>
+                    <span class="snapshot-meta">
+                      {snap.tab.toUpperCase()} · {new Date(snap.savedAt).toLocaleString()}
+                    </span>
+                  </div>
+                  <div class="snapshot-actions">
+                    <button type="button" class="btn" onClick={() => restoreSnapshot(snap)}>
+                      Restore
+                    </button>
+                    <button type="button" class="btn" onClick={() => removeSnapshot(snap.id)}>
+                      Delete
+                    </button>
+                  </div>
+                </li>
+              )}
+            </For>
+          </ul>
         </Show>
       </section>
     </main>

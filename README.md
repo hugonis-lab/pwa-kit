@@ -5,6 +5,8 @@ A local-first, composable Progressive Web App starter and WebAssembly kernel too
 - **Thin Reactive UI Shell (`shell/`)**: Fine-grained **SolidJS** + **Vite** + **Zero-Runtime Static CSS** (`tokens.css` + `app.css`, decoupled from any utility framework or OS theme) with an offline-first Service Worker precache shell and `COOP`/`COEP` headers.
 - **Zero-Dependency Zig WASM Core (`wasm/zig-core/`)**: Compiles to a **`~3.1 KB` raw (`~1.6 KB` gzip)** `wasm32-freestanding` binary running inside a dedicated **Web Worker** (`core.worker.ts`) so heavy compute never blocks the main thread or INP budget.
 - **Composable Kernel Registry (`shell/src/plugins/registry.ts`)**: Register additional WASM/Worker kernels cleanly without modifying the shell architecture.
+- **Local-First Persistence (`shell/src/storage/localStore.ts`)**: Zero-dependency `OPFS → IndexedDB → Memory` workspace snapshot adapter with offline restore/delete.
+- **Automated UI Quality Gate CI (`.forgejo/workflows/ui-gate.yaml`)**: Portable workflow running `ui-gate` on every push and pull request.
 
 ## Included Zig WASM Kernels (`core.zig`)
 

@@ -1,0 +1,48 @@
+name: UI Design Gate
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  ui-gate:
+    runs-on: ubuntu-latest
+    env:
+      UI_GATE_VIEWPORTS: ${{ vars.UI_GATE_VIEWPORTS || '390x844,1280x800' }}
+      UI_GATE_SYSTEMONE_URL: ${{ vars.UI_GATE_SYSTEMONE_URL || '' }}
+      UI_GATE_VLM_URL: ${{ vars.UI_GATE_VLM_URL || '' }}
+      UI_GATE_VLM_MODEL: ${{ vars.UI_GATE_VLM_MODEL || '' }}
+      UI_GATE_VLM_API_KEY: ${{ secrets.UI_GATE_VLM_API_KEY || '' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build & serve preview
+        run: |
+          bash wasm/zig-core/build.sh && (cd shell && npm ci && npm run build)
+          npx --prefix shell vite preview --host 127.0.0.1 --port 4173 --strictPort >/tmp/ui-gate-preview.log 2>&1 &
+          echo $! > /tmp/ui-gate-preview.pid
+          for i in $(seq 1 30); do
+            curl -sf "http://127.0.0.1:4173/" >/dev/null && break
+            sleep 0.5
+          done
+
+      - name: Run UI Design Gate
+        run: |
+          MODE="fast"
+          if [ -n "${UI_GATE_VLM_URL}" ] && [ -n "${UI_GATE_VLM_MODEL}" ]; then
+            MODE="signoff"
+          fi
+          ui-gate run "http://127.0.0.1:4173/" \
+            --mode "$MODE" \
+            --viewports "${UI_GATE_VIEWPORTS}" \
+            --out-dir ui-gate-artifacts \
+            --report-json ui-gate-artifacts/report.json
+
+      - name: Stop preview server
+        if: always()
+        run: |
+          if [ -f /tmp/ui-gate-preview.pid ]; then
+            kill "$(cat /tmp/ui-gate-preview.pid)" 2>/dev/null || true
+          fi
