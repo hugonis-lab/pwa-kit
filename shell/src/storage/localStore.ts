@@ -26,7 +26,10 @@ const MAX_SNAPSHOTS = 20;
 
 class OpfsAdapter implements LocalStorageAdapter {
   readonly backend = "OPFS" as const;
-  constructor(private dir: FileSystemDirectoryHandle) {}
+  private dir: FileSystemDirectoryHandle;
+  constructor(dir: FileSystemDirectoryHandle) {
+    this.dir = dir;
+  }
 
   private async readAll(): Promise<WorkspaceSnapshot[]> {
     try {

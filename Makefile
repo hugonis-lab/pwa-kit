@@ -16,6 +16,7 @@ typecheck:
 
 test: wasm
 	node --test tests/zig-core.test.mjs
+	cd shell && npm test
 
 clean:
 	rm -rf shell/dist shell/public/core.wasm wasm/zig-core/core.wasm wasm/zig-core/core.raw.wasm

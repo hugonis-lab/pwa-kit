@@ -15,7 +15,11 @@ async function getCore(wasmUrl?: string) {
       const buf = await res.arrayBuffer();
       const core = await loadCore(buf);
       return { core, wasmBytes: buf.byteLength, initMs: performance.now() - t0 };
-    })();
+    })().catch((err) => {
+      // Allow a later retry after a transient load failure.
+      corePromise = null;
+      throw err;
+    });
   }
   return corePromise;
 }
